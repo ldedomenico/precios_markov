@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YPF - Simulador de Acciones con Cadenas de Markov</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- Carrusel de Mercado en la Cabecera -->
+    <div class="marquee-container glass-panel-flat">
+        <div class="marquee-content" id="marketCarousel">
+            <span class="ticker-item">Cargando mercados en vivo...</span>
+        </div>
+    </div>
+
+    <header class="glass-panel">
+        <div class="header-content">
+            <h1 class="gradient-text">Simulador de Acciones</h1>
+            <p>Predicción a 100 días mediante Cadenas de Markov</p>
+        </div>
+    </header>
+    
+    <!-- Pestañas de Navegación -->
+    <div class="tabs-container">
+        <button class="tab-btn active" data-target="simulador">Simulador</button>
+        <button class="tab-btn" data-target="metodologia">Metodología</button>
+        <button class="tab-btn" data-target="codigo">Análisis Teórico de Código</button>
+    </div>
+
+    <main class="container">
+        
+        <!-- ================= TAB: SIMULADOR ================= -->
+        <div id="simulador" class="tab-content active">
+            <aside class="sidebar">
+                <section class="glass-panel search-section">
+                    <h2>Ingresar Acción</h2>
+                    <div class="input-group">
+                        <input type="text" id="tickerInput" list="tickersList" placeholder="Ej: AAPL, YPF, GGAL" value="YPF">
+                        <datalist id="tickersList">
+                            <option value="YPF" label="YPF Sociedad Anónima">
+                            <option value="GGAL" label="Grupo Financiero Galicia S.A.">
+                            <option value="BMA" label="Banco Macro S.A.">
+                            <option value="PAM" label="Pampa Energía S.A.">
+                            <option value="CEPU" label="Central Puerto S.A.">
+                            <option value="AAPL" label="Apple Inc.">
+                            <option value="MSFT" label="Microsoft Corporation">
+                            <option value="GOOGL" label="Alphabet Inc. (Google)">
+                            <option value="AMZN" label="Amazon.com Inc.">
+                            <option value="META" label="Meta Platforms Inc.">
+                            <option value="TSLA" label="Tesla Inc.">
+                            <option value="NVDA" label="NVIDIA Corporation">
+                            <option value="JPM" label="JPMorgan Chase & Co.">
+                            <option value="V" label="Visa Inc.">
+                            <option value="CL=F" label="Petróleo (Crude Oil Brent/WTI)">
+                            <option value="GC=F" label="Oro (Gold)">
+                        </datalist>
+                    </div>
+                    <!-- Botón centrado -->
+                    <div class="btn-container">
+                        <button id="simulateBtn" class="primary-btn">
+                            <span id="btnText">Simular Proyección</span>
+                            <div id="btnSpinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                    <div id="errorMsg" class="error-msg hidden">Hubo un error al buscar los datos. Intente nuevamente.</div>
+                </section>
+
+                <section class="glass-panel stats-section hidden" id="statsPanel">
+                    <h3>Matriz de Transición Muestral</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">P(Subir | Subir)</span>
+                            <span class="stat-value text-green" id="st_ss">--</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">P(Bajar | Subir)</span>
+                            <span class="stat-value text-red" id="st_bs">--</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">P(Subir | Bajar)</span>
+                            <span class="stat-value text-green" id="st_sb">--</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">P(Bajar | Bajar)</span>
+                            <span class="stat-value text-red" id="st_bb">--</span>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <section class="chart-container glass-panel">
+                <div id="initialState" class="empty-state">
+                    <p>Ingrese un ticket y haga clic en "Simular Proyección" para obtener un recorrido estocástico.</p>
+                </div>
+                <div id="canvasContainer" class="hidden">
+                    <canvas id="stockChart"></canvas>
+                </div>
+            </section>
+        </div>
+
+        <!-- ================= TAB: METODOLOGÍA ================= -->
+        <div id="metodologia" class="tab-content glass-panel document-style">
+            <h2>Precios de Acciones con Markov</h2>
+            <h3>Investigación Operativa, Ingeniería Industrial - Luciano De Doménico</h3>
+            <hr>
+            
+            <h4>¿Podemos aplicar Markov para modelar el precio de las acciones en la bolsa?</h4>
+            <div class="math-equation">
+                "Las cadenas de Markov describen una secuencia donde la probabilidad de que ocurra un evento depende exclusivamente del evento inmediatamente anterior."
+            </div>
+            <img src="images/slide_0.png" alt="Slide 1 - Portada">
+            
+            <p>Si consideramos que el valor de una acción se comporta de manera estocástica, el precio en un momento dado depende del precio en el momento anterior y no de todo el historial de precios. Con estas suposiciones, podemos aplicar Markov bajo la métrica del promedio diario:</p>
+            <div class="math-equation">
+                <em>Precio Promedio = ( P<sub>abrir</sub> + P<sub>cierre</sub> ) / 2</em>
+            </div>
+            
+            <img src="images/slide_1.png" alt="Slide 2 - Introducción">
+            <img src="images/slide_2.png" alt="Slide 3 - Parámetros">
+
+            <h4>Estados del Sistema: El Ejemplo de Apple</h4>
+            <p>Discretizando la variable, el sistema toma dos estados principales de transición de un día a otro: <strong>Sube</strong> o <strong>Baja</strong>.</p>
+            <p>Intentemos predecir si el precio de la acción de Apple va a subir o bajar. Tomamos los valores del último año y medimos la frecuencia con la que pasó de un estado a otro en días consecutivos obteniendo:</p>
+            
+            <div class="math-equation">
+                F = 
+                <table style="display:inline-table; margin-left: 10px; border-left: 2px solid #cbd5e1; border-right: 2px solid #cbd5e1; padding: 0 5px;">
+                    <tr><td style="padding: 5px 15px;">87</td><td style="padding: 5px 15px;">43</td></tr>
+                    <tr><td style="padding: 5px 15px;">43</td><td style="padding: 5px 15px;">77</td></tr>
+                </table>
+            </div>
+
+            <img src="images/slide_3.png" alt="Slide 4 - Matriz de Frecuencia">
+            <img src="images/slide_4.png" alt="Slide 5 - Apple Matrix">
+
+            <p>Dividiendo las frecuencias por sus totales de fila, normalizamos y obtenemos la <strong>Matriz de Probabilidades de Transición (T)</strong>:</p>
+            <div class="math-equation">
+                T = 
+                <table style="display:inline-table; margin-left: 10px; border-left: 2px solid #cbd5e1; border-right: 2px solid #cbd5e1; padding: 0 5px;">
+                    <tr><td style="padding: 5px 15px;">0.669</td><td style="padding: 5px 15px;">0.330</td></tr>
+                    <tr><td style="padding: 5px 15px;">0.358</td><td style="padding: 5px 15px;">0.641</td></tr>
+                </table>
+            </div>
+
+            <img src="images/slide_5.png" alt="Slide 6 - Probabilidades de Transición">
+
+            <h4>Aplicando el Vector de Estado</h4>
+            <p>Con la Matriz Estocástica y un vector inicial, simulamos. Si hoy la acción bajó (Vector: <code>0 , 1</code>), ¿qué pasará dentro de 2 días? Multiplicamos el vector por <code>T²</code>:</p>
+            
+            <div class="math-equation">
+                p<sub>2</sub> = p<sub>0</sub> * T² = (0 , 1) * 
+                <table style="display:inline-table; margin-left: 10px; border-left: 2px solid #cbd5e1; border-right: 2px solid #cbd5e1; padding: 0 5px; vertical-align: middle;">
+                    <tr><td style="padding: 5px 15px;">0.566</td><td style="padding: 5px 15px;">0.433</td></tr>
+                    <tr><td style="padding: 5px 15px;">0.469</td><td style="padding: 5px 15px;">0.530</td></tr>
+                </table>
+                &nbsp; = &nbsp; <strong>( 0.469 &nbsp;,&nbsp; 0.530 )</strong>
+            </div>
+            
+            <p><strong>Conclusión del modelo:</strong> De esta forma predictiva concluimos que con un <strong>53% de probabilidad, Apple va a bajar</strong> dentro de 2 días, fundamentando nuestras futuras simulaciones locales de precios.</p>
+            
+            <img src="images/slide_6.png" alt="Slide 7 - Simular Camino">
+
+            <p class="disclaimer">* Esto no es una recomendación de inversión. Las inversiones financieras traen riesgos y este es un modelo de Ingeniería Industrial puramente académico.</p>
+        </div>
+
+        <!-- ================= TAB: CÓDIGO TEÓRICO ================= -->
+        <div id="codigo" class="tab-content glass-panel document-style">
+            <h2>Lógica Base de Python (Jupyter Notebook / Pandas)</h2>
+            <p>A continuación se expone la teoría limpia del código de simulación (sin wrappers de red). Esta es la matemática en variables que rige nuestros algoritmos de datos e IO.</p>
+            
+            <h4>1. Ingesta y Discretización (Promedio)</h4>
+            <pre><code class="language-python">import pandas as pd
+import numpy as np
+import yfinance as yf
+
+# 1. Carga de datos historicos del ticker
+datos_historicos = yf.download("AAPL", start=fecha_inicio, end=pd.Timestamp.today())
+
+# 2. Promedio entre el Precio de Apertura y el de Cierre
+datos_historicos["Promedio"] = (datos_historicos["Open"] + datos_historicos["Close"]) / 2
+</code></pre>
+            <p>Se importan las bibliotecas de análisis de datos y se crea un vector continuo combinando Apertura y Cierre con la esperanza de mitigar el ruido intradiario.</p>
+
+            <h4>2. Transición y Frecuencias (Estados de Markov)</h4>
+            <pre><code class="language-python"># 3. Vectorización de Estados: Subió o Bajó respecto del día anterior (.diff())
+datos_historicos["Frecuencia_o"] = np.where(datos_historicos["Promedio"].diff() > 0, "Subió", "Bajó")
+
+# Desplazamos (shift) un registro hacia atrás para contraponer t vs t+1
+datos_historicos["Frecuencia_f"] = datos_historicos["Frecuencia_o"].shift(1)
+
+# Cruzamiento Analítico para extraer F
+matriz_frecuencias = pd.crosstab(datos_historicos["Frecuencia_f"], datos_historicos["Frecuencia_o"])
+</code></pre>
+            <p>Utilizamos <code>pd.crosstab</code> sobre dos vectores de Pandas (el estado actual vs el pasado) lo que instantáneamente genera la matriz empírica <code>F</code> (ej: Las 87 Sube->Sube, y las 43 Baja->Sube).</p>
+
+            <h4>3. Matriz de Probabilidad Exacta</h4>
+            <pre><code class="language-python"># 4. Dividir cada Frecuencia sobre las sumas de sus eventos de partida (T)
+matriz_probabilidades = matriz_frecuencias.div(matriz_frecuencias.sum(axis=1), axis=0)
+</code></pre>
+
+            <h4>4. Fase de Simulación Algorítmica</h4>
+            <pre><code class="language-python">num_pasos = 100
+precio_actual = datos_historicos["Promedio"].iloc[-1]
+cambio_estado = "Subió" # Estado final real del último día
+
+for _ in range(num_pasos):
+    # Aislamos las probabilidades de transición de nuestro estado actual
+    prob = matriz_probabilidades.loc[cambio_estado]
+    
+    # 5. La ruleta probabilística usando la Matriz (T)
+    cambio_estado = np.random.choice(["Subió", "Bajó"], p=[prob['Subió'], prob['Bajó']])
+
+    # Determinamos exactamente "Cuánto" basándonos en Desvío Típico e infiriendo Normalidad (Campana Gaussiana)
+    if cambio_estado == "Subió":
+        incremental = abs(np.random.normal(media_subida, desvio_subida))
+        precio_actual = precio_actual + incremental
+    else:
+        incremental = abs(np.random.normal(media_bajada, desvio_bajada))
+        precio_actual = precio_actual - incremental
+        
+    precios_simulados.append(precio_actual)
+</code></pre>
+            <p>Dentro del lazo, la función <code>np.random.choice</code> recibe los pesos de probabilidad exacta de Markov. Luego, el cambio en dólares se infiere de una distribución normal simulada con variables aleatorias. Este recorrido en serie es devuelto finalmente a nuestro tablero para trazarlo hacia el futuro.</p>
+        </div>
+
+    </main>
+
+    <footer class="glass-panel">
+        <p>Investigación Operativa - UTN FRBA</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

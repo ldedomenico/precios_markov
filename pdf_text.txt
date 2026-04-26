@@ -1,0 +1,87 @@
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con 
+Markov
+Luciano De Doménico
+===PAGE===
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con Markov
+¿Podemos aplicar Markov para modelar el precio de las 
+acciones en la bolsa?
+Pensemos:
+“Las cadenas de Markov describen una secuencia donde la 
+probabilidad de que ocurra un evento depende del evento 
+inmediatamente anterior”.
+Si consideramos que el valor de una acción se comporta de 
+manera estocástica, el precio en un momento dado depende 
+del precio en el momento anterior y no de todo el historial de 
+precios. 
+Con estas suposiciones, ¡podemos aplicar Markov!
+
+===PAGE===
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con Markov
+Intentemos predecir si el precio de la acción de Apple va a subir o bajar:
+Tomemos los valores de la acción correspondientes al último año:
+
+===PAGE===
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con Markov
+Para modelizarlo como una Cadena de Markov Homogenea
+Parámetro discreto: Días
+Variable discreta: Precio ent.
+Discretizamos la variable en precios promedio y el parámetro en días.
+𝑃𝑟𝑒𝑐𝑖𝑜 𝑝𝑟𝑜𝑚 = 𝑃𝑎𝑏𝑟𝑖𝑟 + 𝑃𝑐𝑖𝑒𝑟𝑟𝑒
+2
+===PAGE===
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con Markov
+¿Que estados puede tomar el sistema?
+Sube Baja
+𝑝𝑠𝑏
+𝑝𝑏𝑏
+𝑝𝑏𝑠
+𝑝𝑠𝑠
+𝑇 = 𝑝𝑠𝑠 𝑝𝑠𝑏
+𝑝𝑏𝑠 𝑝𝑏𝑏
+𝑆𝑢𝑏𝑒 𝐵𝑎𝑗𝑎
+𝑆𝑢𝑏𝑒
+𝐵𝑎𝑗𝑎
+===PAGE===
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con Markov
+*Tomamos los valores del ultimo año
+...
+𝐹 = 87 43
+43 77
+𝑆𝑢𝑏𝑒 𝐵𝑎𝑗𝑎
+𝑆𝑢𝑏𝑒
+𝐵𝑎𝑗𝑎
+Tenemos que calcular los valores de probabilidades de transición. Para eso, 
+medimos la frecuencia con la que una acción pasa de un estado a otro:
+===PAGE===
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con Markov
+Si dividimos la frecuencia por la cantidad de eventos de la fila, podemos obtener las 
+probabilidades de trancisión:
+𝑇 = 0.669 0.330
+0.358 0.641
+𝑆𝑢𝑏𝑒 𝐵𝑎𝑗𝑎
+𝑆𝑢𝑏𝑒
+𝐵𝑎𝑗𝑎
+Matriz de transición:
+¡Listo! Con la matriz y un vector de estado inicial, ya podemos calcular probabilidades.
+===PAGE===
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con Markov
+Probemos: 
+Si hoy la acción de Apple bajó, ¿que pasará con ella dentro de 2 días?
+𝑝2 = 𝑝𝑜𝑇2 = (0 1) 0.566 0.433
+0.469 0.530
+𝑝2 = (0.469 0.530)
+Podemos decir que con un 53% de probabilidad Apple va a bajar
+*Esto no es una recomendación de inversión
+===PAGE===
+[I4051 - Maranzana] Investigación Operativa, Ingeniería Industrial
+Precios de acciones con Markov
+Para concluir, ¡simulemos un camino!
+*Notebook en Colab
